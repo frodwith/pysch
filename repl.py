@@ -1,15 +1,15 @@
-import reader
-import evaluator
-import builtins
+import pysch.reader as reader
+import pysch.evaluator as evaluator
+import pysch.builtins as builtins
 import sys
 
 def repl():
   while True:
-    print "pysch> ", 
+    sys.stdout.write('pysch> ')
     line = sys.stdin.readline()
 
     if not line:
-      sys.exit(0)
+      return
 
     try:
       form = reader.read(line)
@@ -21,7 +21,6 @@ def repl():
       print result
     except evaluator.EvaluationException, e:
       print "Evaluation error:", e
-
 
 if __name__ == '__main__':
   print "pysch lisp thingy -- Version 0.1"

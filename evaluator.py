@@ -28,4 +28,4 @@ def eval(expr, env):
   try:
     return env[expr]
   except KeyError:
-    raise UnboundException, "'%s' is not bound" % (expr)
+    raise UnboundException, "'%s' is not bound" % (expr, )

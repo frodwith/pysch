@@ -54,8 +54,3 @@ def read(string, multiple=False):
     return root
   else:
     return root[-1]
-
-if __name__ == '__main__':
-  import sys
-  slurp = sys.stdin.read()
-  print read(slurp)
