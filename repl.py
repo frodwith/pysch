@@ -15,12 +15,14 @@ def repl():
       form = reader.read(line)
     except reader.ReadException, e:
       print "Syntax error:", e
+      continue
 
     try:
       result = evaluator.eval(form, builtins.env)
       print result
     except evaluator.EvaluationException, e:
       print "Evaluation error:", e
+      continue
 
 if __name__ == '__main__':
   print "pysch lisp thingy -- Version 0.1"
