@@ -1,3 +1,8 @@
+import re
+
+class ReadException(Exception):
+  pass
+
 def tokenize(string):
   tokens = []
   current_token = ''
@@ -13,12 +18,14 @@ def tokenize(string):
     elif char == '(' or char == ')':
       current_token = end_token()
       tokens.append(char)
-    else:
+    else: 
       current_token += char
 
   return tokens
 
-def read(string):
+integer = re.compile(r'^\d+$')
+
+def read(string, multiple=False):
   tokens = tokenize(string)
   root = []
   stack = [root]
@@ -32,15 +39,21 @@ def read(string):
         complete = stack.pop()
         stack[-1].append(complete)
       else:
-        raise Exception, "Unmatched )"
+        raise ReadException, "Unmatched )"
 
     else:
+      if (re.match(integer, t)):
+        t = int(t)
+
       stack[-1].append(t)
 
   if len(stack) > 1:
-    raise Exception, "Unmatched ("
+    raise ReadException, "Unmatched ("
 
-  return root
+  if multiple:
+    return root
+  else:
+    return root[-1]
 
 if __name__ == '__main__':
   import sys
