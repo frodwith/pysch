@@ -1,4 +1,5 @@
 import re
+import pysch.atoms
 
 class ReadException(Exception):
   pass
@@ -37,7 +38,7 @@ def read(string, multiple=False):
     elif t == ')':
       if len(stack) > 1:
         complete = stack.pop()
-        stack[-1].append(complete)
+        stack[-1].append(pysch.atoms.list_to_cons(complete))
       else:
         raise ReadException, "Unmatched )"
 

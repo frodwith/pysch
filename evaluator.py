@@ -7,29 +7,48 @@ class EvaluationException(Exception):
 class UnboundException(EvaluationException):
   pass
 
-def eval(expr, env):
-  if type(expr) == list:
-    if len(expr) < 1:
-      return pysch.atoms.nil
+def eval_lambda(expr, env):
+  iter  = expr.cdr
+  args  = iter.car
+  forms = iter.cdr
 
-    if expr[0] == 'lambda':
-      return pysch.atoms.Lambda(
-        env = env,
-        args = expr[1],
-        forms = expr[2:],
-      )
+  return pysch.atoms.Lambda(env, args, forms)
 
-    if expr[0] == 'define':
-      name = expr[1]
-      val  = eval(expr[2], env)
-      env[name] = val
-      return val
+def eval_define(expr, env):
+  iter = expr.cdr
+  name = iter.car
 
+  iter = iter.cdr
+  val  = eval(iter.car, env)
+
+  env[name] = val
+  return val
+
+def eval_quote(expr, env):
+  return expr.cdr.car
+
+special_forms = {
+  'lambda': eval_lambda,
+  'define': eval_define,
+  'quote' : eval_quote,
+}
+
+def eval_form(expr, env):
+  try:
+    return special_forms[expr.car](expr, env)
+  except KeyError:
     values = [eval(e,env) for e in expr]
     return apply(values[0], values[1:])
 
+def eval(expr, env):
   if type(expr) == types.IntType:
     return expr
+
+  if expr == pysch.atoms.nil:
+    return expr
+
+  if pysch.atoms.is_cons(expr):
+    return eval_form(expr, env)
 
   try:
     return env[expr]

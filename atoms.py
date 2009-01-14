@@ -1,31 +1,69 @@
-nil = []
+class Nil:
+  def __repr__(self):
+    return '()'
 
-def _is_cons(x):
+nil = Nil()
+
+def is_cons(x):
   return hasattr(x, 'car') and hasattr(x, 'cdr')
 
+class ConsIterator():
+  def __init__(self, cons):
+    self.cursor = cons
+    self.proper = True
+
+  def __iter__(self):
+    return self
+
+  def next(self):
+    if self.cursor == nil:
+      raise StopIteration
+
+    if not is_cons(self.cursor):
+      value = self.cursor
+      self.cursor = nil
+      self.proper = False
+    else:
+      value = self.cursor.car
+      self.cursor = self.cursor.cdr
+
+    return value
+
+# a real linked list cell: iterable, indexable, and printable
 class Cons():
   def __init__(self, car, cdr):
     self.car = car
     self.cdr = cdr
 
+  def __iter__(self):
+    return ConsIterator(self)
+
+  def __getitem__(self, n):
+    for val in self:
+      if n == 0:
+        return val
+      n = n - 1
+
+    raise IndexError, 'Index out of range'
+
   def __repr__(self):
-    car = self.car
-    cdr = self.cdr
-    parts = []
-    while _is_cons(cdr):
-      parts.append(str(car))
-      car = cdr.car
-      cdr = cdr.cdr
+    iter = self.__iter__()
+    parts = [str(i) for i in iter]
+    if not iter.proper:
+      parts.insert(-1, '.')
 
-    parts.append(car)
+    return '(' + ' '.join(parts) + ')'
 
-    if cdr != nil:
-      parts.append('.')
-      parts.append(cdr)
+def list_to_cons(list):
+  length = len(list)
 
-    strings = [str(x) for x in parts]
+  def builder(n):
+    if n == length:
+      return nil
 
-    return '(' + ' '.join(strings) + ')'
+    return Cons(list[n], builder(n+1))
+
+  return builder(0)
 
 class Environment(dict):
   def __init__(self, parent=None, **kwargs):
