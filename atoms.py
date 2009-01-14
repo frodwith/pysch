@@ -1,5 +1,32 @@
 nil = []
 
+def _is_cons(x):
+  return hasattr(x, 'car') and hasattr(x, 'cdr')
+
+class Cons():
+  def __init__(self, car, cdr):
+    self.car = car
+    self.cdr = cdr
+
+  def __repr__(self):
+    car = self.car
+    cdr = self.cdr
+    parts = []
+    while _is_cons(cdr):
+      parts.append(str(car))
+      car = cdr.car
+      cdr = cdr.cdr
+
+    parts.append(car)
+
+    if cdr != nil:
+      parts.append('.')
+      parts.append(cdr)
+
+    strings = [str(x) for x in parts]
+
+    return '(' + ' '.join(strings) + ')'
+
 class Environment(dict):
   def __init__(self, parent=None, **kwargs):
     self.parent = parent
