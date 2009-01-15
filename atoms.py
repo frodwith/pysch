@@ -2,12 +2,15 @@ class Nil:
   def __repr__(self):
     return '()'
 
+  def __len__(self):
+    return 0
+
 nil = Nil()
 
 def is_cons(x):
   return hasattr(x, 'car') and hasattr(x, 'cdr')
 
-class ConsIterator():
+class ConsIterator:
   def __init__(self, cons):
     self.cursor = cons
     self.proper = True
@@ -15,7 +18,7 @@ class ConsIterator():
   def __iter__(self):
     return self
 
-  def next(self):
+  def __next__(self):
     if self.cursor == nil:
       raise StopIteration
 
@@ -30,7 +33,7 @@ class ConsIterator():
     return value
 
 # a real linked list cell: iterable, indexable, and printable
-class Cons():
+class Cons:
   def __init__(self, car, cdr):
     self.car = car
     self.cdr = cdr
@@ -44,26 +47,15 @@ class Cons():
         return val
       n = n - 1
 
-    raise IndexError, 'Index out of range'
+    raise IndexError('Index out of range')
 
   def __repr__(self):
-    iter = self.__iter__()
-    parts = [str(i) for i in iter]
-    if not iter.proper:
+    list = iter(self)
+    parts = [str(i) for i in list]
+    if not list.proper:
       parts.insert(-1, '.')
 
     return '(' + ' '.join(parts) + ')'
-
-def list_to_cons(list):
-  length = len(list)
-
-  def builder(n):
-    if n == length:
-      return nil
-
-    return Cons(list[n], builder(n+1))
-
-  return builder(0)
 
 class Environment(dict):
   def __init__(self, parent=None, **kwargs):
@@ -80,7 +72,7 @@ class Environment(dict):
   def __getitem__(self, key):
     try:
       return dict.__getitem__(self, key)
-    except KeyError, e:
+    except KeyError as e:
       if self.parent:
         return self.parent[key]
       raise e
@@ -101,7 +93,7 @@ class Lambda:
     env = Environment()
     env.parent = self.env
 
-    for i in xrange(0, len(self.args)):
+    for i in range(0, len(self.args)):
       var = self.args[i]
       env[var] = args[i]
 

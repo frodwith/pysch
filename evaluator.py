@@ -38,10 +38,10 @@ def eval_form(expr, env):
     return special_forms[expr.car](expr, env)
   except KeyError:
     values = [eval(e,env) for e in expr]
-    return apply(values[0], values[1:])
+    return values[0](*values[1:])
 
 def eval(expr, env):
-  if type(expr) == types.IntType:
+  if type(expr) == int:
     return expr
 
   if expr == pysch.atoms.nil:
@@ -53,4 +53,4 @@ def eval(expr, env):
   try:
     return env[expr]
   except KeyError:
-    raise UnboundException, "'%s' is not bound" % (expr, )
+    raise UnboundException("'%s' is not bound" % (expr, ))
