@@ -1,8 +1,6 @@
-#!/usr/bin/env python
+import distutils.core
 
-from distutils.core import setup
-
-setup(
+distutils.core.setup(
   name         = 'PySch',
   version      = '0.1',
   description  = 'Scheme in Python',
@@ -11,4 +9,3 @@ setup(
   packages     = ['pysch'],
   package_dir  = {'': 'lib'},
 )
-

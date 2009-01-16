@@ -1,0 +1,19 @@
+#!/usr/local/bin/py3k
+
+# No args gets you a repl
+# 'test' runs the test suite
+# you have to run it from this directory though, sorry.
+
+import sys
+sys.path.append('lib')
+
+if len(sys.argv) < 2:
+  from pysch.repl import main as repl
+  repl()
+elif sys.argv[1] in ['test', 'tests']:
+  del sys.argv[1]
+  import nose
+  nose.run('test')
+else:
+  print("Unknown arguments!")
+  exit(1)

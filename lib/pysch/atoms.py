@@ -1,3 +1,5 @@
+import re
+
 class Nil:
   def __repr__(self):
     return '()'
@@ -48,6 +50,19 @@ class Cons:
       n = n - 1
 
     raise IndexError('Index out of range')
+
+  def __getattr__(self, key):
+    match = re.match(r'^c([a|d]*)r$', key)
+    if match:
+      cursor = self
+      for letter in match.group(1)[::-1]:
+        if letter == 'a':
+          cursor = cursor.car
+        else:
+          cursor = cursor.cdr
+      return cursor
+
+    raise AttributeException("'cons' object has no attribute '%s'" % (key,))
 
   def __repr__(self):
     list = iter(self)

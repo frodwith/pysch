@@ -25,7 +25,10 @@ def repl():
       print('Evaluation error:', e)
       continue
 
-if __name__ == '__main__':
+def main():
   print('pysch lisp thingy -- Version 0.1')
   print('--------------------------------')
   repl()
+
+if __name__ == '__main__':
+  main()

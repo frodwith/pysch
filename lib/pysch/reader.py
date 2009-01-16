@@ -9,7 +9,7 @@ def tokenize(string):
   current_token = ''
 
   def end_token():
-    nonlocal current_token
+    nonlocal current_token 
     if current_token:
       tokens.append(current_token)
     current_token = ''
@@ -26,30 +26,41 @@ def tokenize(string):
   end_token()
   return tokens
 
-integer = re.compile(r'^\d+$')
+quote_marker = object()
+dot_marker = object()
 
 def tree_to_cons(tree, i):
-  try:
-    item = tree[i]
-  except IndexError:
+  length = len(tree)
+  if i >= length:
     return pysch.atoms.nil
+
+  item = tree[i]
+  next = (i+1 < length) and tree[i+1]
+
+  if (next == dot_marker):
+    if i+3 < length:
+      raise ReadException('Too many items after dot')
+    elif i+2 < length:
+      return pysch.atoms.Cons(item, tree[i+2])
+    else:
+      raise ReadException('Dot with nothing following')
+
+  if item == quote_marker:
+    if next:
+      item = ['quote', next]
+      del tree[i+1]
+    else:
+      raise ReadException('Quote with nothing following')
 
   if type(item) == list:
     item = tree_to_cons(item, 0)
 
   return pysch.atoms.Cons(item, tree_to_cons(tree, i+1))
 
-def read(string, multiple=False):
+def read(string):
   tokens = tokenize(string)
   root   = []
   stack  = [root]
-
-  def add(item):
-    top = stack[-1]
-    top.append(item)
-    if top[0] == "'":
-      top[0] = 'quote'
-      add(stack.pop())
 
   for t in tokens:
     if t == '(': 
@@ -58,15 +69,23 @@ def read(string, multiple=False):
     elif t == ')':
       if len(stack) == 1:
         raise ReadException("Unmatched )")
-      add(stack.pop())
+      complete = stack.pop()
+      stack[-1].append(complete)
+
+    elif t == '.':      
+      stack[-1].append(dot_marker)
 
     elif t == "'":
-      stack.append(["'"])
+      stack[-1].append(quote_marker)
 
     else:
-      if (re.match(integer, t)):
-        t = int(t)
-      add(t)
+      match = re.match(r'^([+-])?(\d+)$', t)
+      if match:
+        t = int(match.group(2))
+        if match.group(1) == '-':
+          t = -t
+
+      stack[-1].append(t)
 
   if len(stack) > 1:
     raise ReadException("Unmatched (")
