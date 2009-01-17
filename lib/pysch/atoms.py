@@ -1,4 +1,5 @@
 import re
+import pysch
 
 class Nil:
   def __repr__(self):
@@ -6,6 +7,12 @@ class Nil:
 
   def __len__(self):
     return 0
+
+  def __iter__(self):
+    return self
+
+  def __next__(self):
+    raise StopIteration
 
 nil = Nil()
 
@@ -84,12 +91,12 @@ class Environment(dict):
 
     return str
 
-  def __getitem__(self, key):
+  def lookup(self, key):
     try:
-      return dict.__getitem__(self, key)
+      return self[key]
     except KeyError as e:
       if self.parent:
-        return self.parent[key]
+        return self.parent.lookup(key)
       raise e
 
 class Lambda:
@@ -103,17 +110,7 @@ class Lambda:
       % (self.args, self.env, self.forms)
 
   def __call__(self, *args):
-    import pysch.evaluator
+    env = Environment(self.env)
+    env.update({b[0]:b[1] for b in zip(self.args, args)})
 
-    env = Environment()
-    env.parent = self.env
-
-    for i in range(0, len(self.args)):
-      var = self.args[i]
-      env[var] = args[i]
-
-    last_value = None
-    for f in self.forms:
-      last_value = pysch.evaluator.eval(f, env)
-
-    return last_value
+    return [pysch.eval(f, env) for f in self.forms][-1]

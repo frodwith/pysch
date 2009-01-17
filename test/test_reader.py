@@ -48,3 +48,14 @@ def test_quote_list():
   assert cons.caadr == 'foo'
   assert cons.cadadr == 'bar'
   assert cons.cddadr == nil
+
+def test_nested_lists():
+  cons = read('((foo) (bar baz) (qux (quux) quuux) thud (splat))')
+  assert cons.caar == 'foo'
+  assert cons.caadr == 'bar'
+  assert cons.cadadr == 'baz'
+  assert cons.caaddr == 'qux'
+  assert cons.caadaddr == 'quux'
+  assert cons.caddaddr == 'quuux'
+  assert cons.cadddr == 'thud'
+  assert cons.caaddddr == 'splat'

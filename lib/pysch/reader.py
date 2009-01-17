@@ -1,7 +1,8 @@
 import re
 import pysch.atoms
+import pysch
 
-class ReadException(Exception):
+class ReadException(pysch.Exception):
   pass
 
 def tokenize(string):
