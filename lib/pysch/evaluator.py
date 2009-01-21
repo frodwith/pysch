@@ -8,53 +8,18 @@ class EvaluationException(pysch.Exception):
 class UnboundException(EvaluationException):
   pass
 
-def eval_lambda(expr, env):
-  expr  = expr.cdr
-  args  = expr.car
-  forms = expr.cdr
-
-  return pysch.atoms.Lambda(env, args, forms)
-
-def eval_set(expr, env):
-  expr = expr.cdr
-  name = expr.car
-  val = eval(expr.cadr, env)
-
-  # find where the thing is bound
-  while not name in env: 
-    if not env.parent:
-      raise UnboundException("Cannot set! unbound variable '%s'" % (name, ))
-    env = env.parent
-
-  # change its binding
-  env[name] = val
-  return val
-
-def eval_define(expr, env):
-  name = expr.cadr
-  
-  # establish a binding at this level
-  env[name] = None
-
-  # and set its value
-  return eval_set(expr, env)
-
-def eval_quote(expr, env):
-  return expr.cdr.car
-
-special_forms = {
-  'lambda': eval_lambda,
-  'quote' : eval_quote,
-  'define': eval_define,
-  'set!'  : eval_set,
-}
-
 def eval_form(expr, env):
-  try:
-    return special_forms[expr.car](expr, env)
-  except KeyError:
-    values = [eval(e,env) for e in expr]
-    return values[0](*values[1:])
+  op   = eval(expr.car, env)
+  args = expr.cdr
+
+  if type(op) == pysch.atoms.Syntax:
+    return op.eval(args, env)
+  else:
+    args = [eval(a, env) for a in args]
+    try:
+      return op(*args)
+    except TypeError as e:
+      raise EvaluationException('Operator is not callable') from e
 
 def eval(expr, env):
   if type(expr) == int:
@@ -63,10 +28,14 @@ def eval(expr, env):
   if expr == pysch.atoms.nil:
     return expr
 
+  if type(expr) == pysch.atoms.Symbol:
+    sym = expr.string
+    try:
+      return env.lookup(sym)
+    except KeyError as e:
+      raise UnboundException("'%s' is not bound" % (sym, )) from e
+
   if pysch.atoms.is_cons(expr):
     return eval_form(expr, env)
 
-  try:
-    return env.lookup(expr)
-  except KeyError:
-    raise UnboundException("'%s' is not bound" % (expr, ))
+  raise EvaluationException('Tried to evaluate a value of unknown type')

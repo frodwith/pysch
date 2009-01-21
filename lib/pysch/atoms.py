@@ -12,7 +12,7 @@ class Nil:
     return self
 
   def __next__(self):
-    raise StopIteration
+    raise StopIteration 
 
 nil = Nil()
 
@@ -58,6 +58,12 @@ class Cons:
 
     raise IndexError('Index out of range')
 
+  def __len__(self):
+    l = 0
+    for i in self:
+      l = l + 1
+    return l
+
   def __getattr__(self, key):
     match = re.match(r'^c([a|d]*)r$', key)
     if match:
@@ -69,7 +75,7 @@ class Cons:
           cursor = cursor.cdr
       return cursor
 
-    raise AttributeException("'cons' object has no attribute '%s'" % (key,))
+    raise AttributeError("'cons' object has no attribute '%s'" % (key,))
 
   def __repr__(self):
     list = iter(self)
@@ -80,9 +86,10 @@ class Cons:
     return '(' + ' '.join(parts) + ')'
 
 class Environment(dict):
-  def __init__(self, parent=None, **kwargs):
+  def __init__(self, parent=None, initial=None):
     self.parent = parent
-    self.update(kwargs)
+    if initial:
+      self.update(initial)
 
   def __repr__(self):
     str = dict.__repr__(self)
@@ -92,12 +99,13 @@ class Environment(dict):
     return str
 
   def lookup(self, key):
-    try:
+    if key in self:
       return self[key]
-    except KeyError as e:
-      if self.parent:
-        return self.parent.lookup(key)
-      raise e
+
+    if self.parent:
+      return self.parent.lookup(key)
+
+    raise KeyError(key)
 
 class Lambda:
   def __init__(self, env, args, forms):
@@ -111,6 +119,27 @@ class Lambda:
 
   def __call__(self, *args):
     env = Environment(self.env)
-    env.update({b[0]:b[1] for b in zip(self.args, args)})
+    env.update({b[0].string: b[1] for b in zip(self.args, args)})
 
     return [pysch.eval(f, env) for f in self.forms][-1]
+
+class Syntax:
+  def __init__(self, e):
+    self.eval = e
+
+def get_symbol(str):
+  try:
+    return Symbol.table[str]
+  except KeyError:
+    s = Symbol(str)
+    Symbol.table[str] = s
+    return s
+
+class Symbol:
+  table = {}
+
+  def __init__(self, str):
+    self.string = str
+
+  def __repr__(self):
+    return self.string

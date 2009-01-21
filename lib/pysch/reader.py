@@ -5,6 +5,22 @@ import pysch
 class ReadException(pysch.Exception):
   pass
 
+def read_literal(val):
+  integer = re.match(r'^([+-])?(\d+)$', val)
+
+  if integer:
+    val = int(integer.group(2))
+    if integer.group(1) == '-':
+      val = -val
+
+  elif val == '.':
+    pass
+
+  else:
+    val = pysch.atoms.get_symbol(val)
+
+  return val
+
 def tokenize(string):
   tokens = []
   current_token = ''
@@ -12,7 +28,7 @@ def tokenize(string):
   def end_token():
     nonlocal current_token 
     if current_token:
-      tokens.append(current_token)
+      tokens.append(read_literal(current_token))
     current_token = ''
     
   for char in string:
@@ -27,9 +43,6 @@ def tokenize(string):
   end_token()
   return tokens
 
-quote_marker = object()
-dot_marker = object()
-
 def tree_to_cons(tree, i):
   length = len(tree)
   if i >= length:
@@ -38,7 +51,7 @@ def tree_to_cons(tree, i):
   item = tree[i]
   next = (i+1 < length) and tree[i+1]
 
-  if (next == dot_marker):
+  if (next == '.'):
     if i+3 < length:
       raise ReadException('Too many items after dot')
     elif i+2 < length:
@@ -46,9 +59,9 @@ def tree_to_cons(tree, i):
     else:
       raise ReadException('Dot with nothing following')
 
-  if item == quote_marker:
+  if item == "'":
     if next:
-      item = ['quote', next]
+      item = [pysch.atoms.get_symbol('quote'), next]
       del tree[i+1]
     else:
       raise ReadException('Quote with nothing following')
@@ -73,19 +86,7 @@ def read(string):
       complete = stack.pop()
       stack[-1].append(complete)
 
-    elif t == '.':      
-      stack[-1].append(dot_marker)
-
-    elif t == "'":
-      stack[-1].append(quote_marker)
-
     else:
-      match = re.match(r'^([+-])?(\d+)$', t)
-      if match:
-        t = int(match.group(2))
-        if match.group(1) == '-':
-          t = -t
-
       stack[-1].append(t)
 
   if len(stack) > 1:

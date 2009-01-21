@@ -4,6 +4,8 @@ import pysch.builtins
 import pysch.atoms
 import nose.tools
 
+# Test special forms here, as well
+
 env = None
 
 def eval(str):
