@@ -2,6 +2,10 @@ import re
 import pysch.atoms
 import pysch
 
+# use these instead of the bare strings so we don't confuse them for string
+# literals
+reader_symbols = {k: object() for k in ['(', ')', '.', "'"]}
+
 class ReadException(pysch.Exception):
   pass
 
@@ -14,7 +18,7 @@ def read_literal(val):
       val = -val
 
   elif val == '.':
-    pass
+    val = reader_symbols['.']
 
   else:
     val = pysch.atoms.get_symbol(val)
@@ -36,7 +40,7 @@ def tokenize(string):
       end_token()
     elif char in ['(', ')', "'"]:
       end_token()
-      tokens.append(char)
+      tokens.append(reader_symbols[char])
     else: 
       current_token += char
 
@@ -51,7 +55,7 @@ def tree_to_cons(tree, i):
   item = tree[i]
   next = (i+1 < length) and tree[i+1]
 
-  if (next == '.'):
+  if (next == reader_symbols['.']):
     if i+3 < length:
       raise ReadException('Too many items after dot')
     elif i+2 < length:
@@ -59,7 +63,7 @@ def tree_to_cons(tree, i):
     else:
       raise ReadException('Dot with nothing following')
 
-  if item == "'":
+  if item == reader_symbols["'"]:
     if next:
       item = [pysch.atoms.get_symbol('quote'), next]
       del tree[i+1]
@@ -77,10 +81,10 @@ def read(string):
   stack  = [root]
 
   for t in tokens:
-    if t == '(': 
+    if t == reader_symbols['(']: 
       stack.append([])
 
-    elif t == ')':
+    elif t == reader_symbols[')']:
       if len(stack) == 1:
         raise ReadException("Unmatched )")
       complete = stack.pop()
