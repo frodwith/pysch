@@ -1,5 +1,3 @@
-import types
-import pysch.atoms
 import pysch
 
 class EvaluationException(pysch.Exception):
@@ -8,34 +6,39 @@ class EvaluationException(pysch.Exception):
 class UnboundException(EvaluationException):
   pass
 
-def eval_form(expr, env):
-  op   = eval(expr.car, env)
-  args = expr.cdr
-
-  if type(op) == pysch.atoms.Syntax:
-    return op.eval(args, env)
-  else:
-    args = [eval(a, env) for a in args]
-    try:
-      return op(*args)
-    except TypeError as e:
-      raise EvaluationException('Operator is not callable') from e
-
 def eval(expr, env):
-  if type(expr) == int:
+  import pysch.atoms as atom
+  def literal():
     return expr
 
-  if expr == pysch.atoms.nil:
-    return expr
-
-  if type(expr) == pysch.atoms.Symbol:
+  def symbol():
     sym = expr.string
     try:
       return env.lookup(sym)
     except KeyError as e:
       raise UnboundException("'%s' is not bound" % (sym, )) from e
 
-  if pysch.atoms.is_cons(expr):
-    return eval_form(expr, env)
+  def form():
+    op   = eval(expr.car, env)
+    args = expr.cdr
 
-  raise EvaluationException('Tried to evaluate a value of unknown type')
+    if type(op) == atom.Syntax:
+      return op.eval(args, env)
+    else:
+      args = [eval(a, env) for a in args]
+      try:
+        return op(*args)
+      except TypeError as e:
+        raise EvaluationException('Operator is not callable') from e
+
+  try:
+    return {
+      atom.Symbol: symbol,
+      atom.Cons:   form,
+      atom.Nil:    literal,
+      str:         literal,
+      int:         literal,
+    }[type(expr)]()
+  except KeyError as e:
+    raise EvaluationException(
+      'Tried to evaluate a value of unknown type') from e

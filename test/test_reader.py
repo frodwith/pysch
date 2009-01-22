@@ -36,6 +36,10 @@ def test_improper_list():
   assert cons.cddr == get_symbol('baz')
   assert str(cons) == rep
 
+def test_string_literal():
+  val = read('"a string literal"')
+  assert val == 'a string literal', val
+
 def test_quote_symbol():
   cons = read("'a")
   assert cons.car == get_symbol('quote')

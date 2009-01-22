@@ -16,6 +16,11 @@ def setup():
   global env
   env = pysch.atoms.Environment(pysch.builtins.env)
 
+def test_literals():
+  assert eval('"foo bar"') == 'foo bar'
+  assert eval('1') == 1
+  assert eval('()') == pysch.atoms.nil
+
 def test_define():
   eval('(define x 1)')
   assert eval('x') == 1

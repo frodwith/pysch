@@ -3,7 +3,7 @@ import pysch.atoms
 import pysch
 
 # use these instead of the bare strings so we don't confuse them for string
-# literals
+# literals, e.g. reader_symbol['.']
 reader_symbols = {k: object() for k in ['(', ')', '.', "'"]}
 
 class ReadException(pysch.Exception):
@@ -28,16 +28,29 @@ def read_literal(val):
 def tokenize(string):
   tokens = []
   current_token = ''
+  quote_open = False
 
   def end_token():
-    nonlocal current_token 
+    nonlocal current_token
+
     if current_token:
       tokens.append(read_literal(current_token))
+
     current_token = ''
     
   for char in string:
-    if char.isspace():
+    if quote_open:
+      if char == '"':
+        quote_open = False
+        tokens.append(current_token)
+        current_token = ''
+      else:
+        current_token += char
+
+    elif char.isspace():
       end_token()
+    elif char == '"':
+      quote_open = True
     elif char in ['(', ')', "'"]:
       end_token()
       tokens.append(reader_symbols[char])

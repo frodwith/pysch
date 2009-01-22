@@ -16,9 +16,6 @@ class Nil:
 
 nil = Nil()
 
-def is_cons(x):
-  return hasattr(x, 'car') and hasattr(x, 'cdr')
-
 class ConsIterator:
   def __init__(self, cons):
     self.cursor = cons
@@ -31,7 +28,7 @@ class ConsIterator:
     if self.cursor == nil:
       raise StopIteration
 
-    if not is_cons(self.cursor):
+    if type(self.cursor) != Cons:
       value = self.cursor
       self.cursor = nil
       self.proper = False
