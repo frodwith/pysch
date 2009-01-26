@@ -25,6 +25,9 @@ def test_define():
   eval('(define x 1)')
   assert eval('x') == 1
 
+  eval('(define (foo bar baz) (+ bar baz))')
+  assert eval('(foo 3 4)') == 7
+
 def test_lambda():
   assert eval('((lambda () 1))') == 1
   assert eval('((lambda (x) x) 1)') == 1

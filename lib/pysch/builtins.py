@@ -1,11 +1,10 @@
-import pysch.atoms
 import pysch.evaluator
-from pysch.atoms import Syntax
+from pysch.atoms import Syntax, Cons, Lambda, Environment, nil, get_symbol
 
 # normal functions
 
 def cons(car, cdr):
-  return pysch.atoms.Cons(car, cdr)
+  return Cons(car, cdr)
 
 def car(cons):
   return cons.car
@@ -25,7 +24,7 @@ def _lambda(args, env):
   arglist = args.car
   forms   = args.cdr
 
-  return pysch.atoms.Lambda(env, arglist, forms)
+  return Lambda(env, arglist, forms)
 
 def _set(args, env):
   symbol = args.car
@@ -44,25 +43,28 @@ def _set(args, env):
   return val
 
 def define(args, env):
-  symbol = args.car
-  
-  # establish a binding at this level
-  env[symbol.string] = None
+  if(type(args.car) == Cons):
+    symbol = args.caar
+    args = Cons(args.cdar, args.cdr)
+    value = _lambda(args, env)
+  else:
+    symbol = args.car
+    value  = pysch.evaluator.eval(args.cadr, env)
 
-  # and set its value
-  return _set(args, env)
+  env[symbol.string] = value
+  return value
 
 def quote(args, env):
   return args.car
 
 # The Builtin Environment(tm)
 
-env = pysch.atoms.Environment(initial = {
+env = Environment(initial = {
   '+':      add,
   'cons':   cons,
   'car':    car,
   'cdr':    cdr,
-  'nil':    pysch.atoms.nil,
+  'nil':    nil,
 
   'lambda': Syntax(_lambda),
   'quote' : Syntax(quote),
