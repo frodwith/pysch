@@ -28,8 +28,7 @@ def read_literal(val):
 def tokenize(string):
   tokens = []
   current_token = ''
-  quote_open = False
-
+  quote_open = False 
   def end_token():
     nonlocal current_token
 
@@ -109,4 +108,7 @@ def read(string):
   if len(stack) > 1:
     raise ReadException("Unmatched (")
 
-  return tree_to_cons(root, 0).car
+  structure = tree_to_cons(root, 0)
+  if (structure == pysch.atoms.nil):
+    return None
+  return structure.car

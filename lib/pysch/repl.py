@@ -14,13 +14,14 @@ def repl():
 
     try:
       form = reader.read(line)
+      if not form:
+        continue
     except reader.ReadException as e:
       print('Syntax error:', e)
       continue
 
     try:
       result = evaluator.eval(form, builtins.env)
-      print(result)
     except evaluator.EvaluationException as e:
       print('Evaluation error:', e)
       continue
