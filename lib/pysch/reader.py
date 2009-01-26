@@ -4,7 +4,8 @@ import pysch
 
 # use these instead of the bare strings so we don't confuse them for string
 # literals, e.g. reader_symbol['.']
-reader_symbols = {k: object() for k in ['(', ')', '.', "'"]}
+reader_symbols = {k: object() for k in ['(', ')', '.', "'", "`"]}
+shorthand = {"'": 'quote', '`': 'quasiquote'}
 
 class ReadException(pysch.Exception):
   pass
@@ -50,7 +51,7 @@ def tokenize(string):
       end_token()
     elif char == '"':
       quote_open = True
-    elif char in ['(', ')', "'"]:
+    elif char in ['(', ')', '`', "'"]:
       end_token()
       tokens.append(reader_symbols[char])
     else: 
@@ -67,7 +68,7 @@ def tree_to_cons(tree, i):
   item = tree[i]
   next = (i+1 < length) and tree[i+1]
 
-  if (next == reader_symbols['.']):
+  if next == reader_symbols['.']:
     if i+3 < length:
       raise ReadException('Too many items after dot')
     elif i+2 < length:
@@ -75,12 +76,14 @@ def tree_to_cons(tree, i):
     else:
       raise ReadException('Dot with nothing following')
 
-  if item == reader_symbols["'"]:
-    if next:
-      item = [pysch.atoms.get_symbol('quote'), next]
-      del tree[i+1]
-    else:
-      raise ReadException('Quote with nothing following')
+  for short in shorthand.keys():
+    if item == reader_symbols[short]:
+      if next:
+        item = [pysch.atoms.get_symbol(shorthand[short]), next]
+        del tree[i+1]
+        break
+      else:
+        raise ReadException('"%s" with nothing following' % (short,))
 
   if type(item) == list:
     item = tree_to_cons(item, 0)

@@ -53,6 +53,11 @@ def test_quote_list():
   assert cons.cadadr == get_symbol('bar')
   assert cons.cddadr == nil
 
+def test_quasiquote():
+  cons = read("`(foo)")
+  assert cons.car == get_symbol('quasiquote')
+  assert cons.caadr == get_symbol('foo')
+
 def test_nested_lists():
   cons = read('((foo) (bar baz) (qux (quux) quuux) thud (splat))')
   assert cons.caar == get_symbol('foo')
