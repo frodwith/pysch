@@ -22,6 +22,7 @@ def repl():
 
     try:
       result = evaluator.eval(form, builtins.env)
+      print(result)
     except evaluator.EvaluationException as e:
       print('Evaluation error:', e)
       continue
