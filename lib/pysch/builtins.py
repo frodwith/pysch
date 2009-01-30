@@ -1,31 +1,52 @@
 import pysch.evaluator
-from pysch.atoms import Syntax, Cons, Lambda, Environment, nil, get_symbol
+import pysch.atoms
+from pysch.atoms import Cons
 
-# normal functions
+env = pysch.atoms.Environment()
 
+def builtin(name=None):
+  def deco(fn):
+    n = name or fn.__name__
+    env[n] = fn
+    return fn
+
+  return deco
+
+def syntax(name=None):
+  def deco(fn):
+    n = name or fn.__name__
+    env[n] = pysch.atoms.Syntax(fn)
+    return fn
+
+  return deco
+
+@builtin()
 def cons(car, cdr):
   return Cons(car, cdr)
 
+@builtin()
 def car(cons):
   return cons.car
 
+@builtin()
 def cdr(cons):
   return cons.cdr
 
+@builtin('+')
 def add(*args):
   sum = 0
   for n in args:
     sum += n
   return sum
 
-# special forms
-
+@syntax('lambda')
 def _lambda(args, env):
   arglist = args.car
   forms   = args.cdr
 
-  return Lambda(env, arglist, forms)
+  return pysch.atoms.Lambda(env, arglist, forms)
 
+@syntax('set!')
 def _set(args, env):
   symbol = args.car
   val    = pysch.evaluator.eval(args.cadr, env)
@@ -42,6 +63,7 @@ def _set(args, env):
   env[name] = val
   return val
 
+@syntax()
 def define(args, env):
   if(type(args.car) == Cons):
     symbol = args.caar
@@ -54,20 +76,6 @@ def define(args, env):
   env[symbol.string] = value
   return value
 
+@syntax()
 def quote(args, env):
   return args.car
-
-# The Builtin Environment(tm)
-
-env = Environment(initial = {
-  '+':      add,
-  'cons':   cons,
-  'car':    car,
-  'cdr':    cdr,
-  'nil':    nil,
-
-  'lambda': Syntax(_lambda),
-  'quote' : Syntax(quote),
-  'define': Syntax(define),
-  'set!'  : Syntax(_set),
-})
