@@ -35,6 +35,7 @@ def eval(expr, env):
     return {
       atom.Symbol: symbol,
       atom.Cons:   form,
+      bool:        literal,
       atom.Nil:    literal,
       str:         literal,
       int:         literal,

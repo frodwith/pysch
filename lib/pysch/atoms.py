@@ -38,6 +38,8 @@ class ConsIterator:
 
     return value
 
+cadr_chain = re.compile(r'^c([a|d]*)r$')
+
 # a real linked list cell: iterable, indexable, and printable
 class Cons:
   def __init__(self, car, cdr):
@@ -62,7 +64,7 @@ class Cons:
     return l
 
   def __getattr__(self, key):
-    match = re.match(r'^c([a|d]*)r$', key)
+    match = cadr_chain.match(key)
     if match:
       cursor = self
       for letter in match.group(1)[::-1]:
@@ -102,6 +104,15 @@ class Environment(dict):
     if self.parent:
       return self.parent.lookup(key)
 
+    if cadr_chain.match(key):
+      def chainer(x):
+        return x.__getattr__(key)
+
+      chainer.__name__ = key
+
+      self[key] = chainer
+      return chainer
+
     raise KeyError(key)
 
 class Lambda:
@@ -117,7 +128,6 @@ class Lambda:
   def __call__(self, *args):
     env = Environment(self.env)
     env.update({b[0].string: b[1] for b in zip(self.args, args)})
-
     return [pysch.eval(f, env) for f in self.forms][-1]
 
 class Syntax:

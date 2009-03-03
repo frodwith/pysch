@@ -14,7 +14,7 @@ def repl():
 
     try:
       form = reader.read(line)
-      if not form:
+      if form == None:
         continue
     except reader.ReadException as e:
       print('Syntax error:', e)
@@ -22,7 +22,7 @@ def repl():
 
     try:
       result = evaluator.eval(form, builtins.env)
-      print(result)
+      builtins._print(result)
     except evaluator.EvaluationException as e:
       print('Evaluation error:', e)
       continue

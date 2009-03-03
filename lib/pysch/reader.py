@@ -4,8 +4,8 @@ import pysch
 
 # use these instead of the bare strings so we don't confuse them for string
 # literals, e.g. reader_symbol['.']
-reader_symbols = {k: object() for k in ['(', ')', '.', "'", "`"]}
-shorthand = {"'": 'quote', '`': 'quasiquote'}
+reader_symbols = {k: object() for k in ['(', ')', '.', "'", "`", ","]}
+shorthand = {"'": 'quote', '`': 'quasiquote', ',' : 'unquote'}
 
 class ReadException(pysch.Exception):
   pass
@@ -17,6 +17,12 @@ def read_literal(val):
     val = int(integer.group(2))
     if integer.group(1) == '-':
       val = -val
+
+  elif val == '#f':
+    val = False
+
+  elif val == '#t':
+    val = True
 
   elif val == '.':
     val = reader_symbols['.']
@@ -51,7 +57,7 @@ def tokenize(string):
       end_token()
     elif char == '"':
       quote_open = True
-    elif char in ['(', ')', '`', "'"]:
+    elif char in ['(', ')', '`', ',', "'"]:
       end_token()
       tokens.append(reader_symbols[char])
     else: 
