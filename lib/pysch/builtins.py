@@ -43,12 +43,12 @@ def pairp(x):
   return type(x) == Cons
 
 def _repr(x):
-  if (x == True):
-    return '#t'
-  elif (x == False):
+  if type(x) == bool:
+    if x == True:
+      return '#t'
     return '#f'
-  else:
-    return repr(x)
+
+  return repr(x)
 
 @builtin('print')
 def _print(*args):
@@ -96,10 +96,6 @@ def define(args, env):
 
   env[symbol.string] = value
   return value
-
-@syntax()
-def quote(args, env):
-  return args.car
 
 @syntax('if')
 def _if(args, env):

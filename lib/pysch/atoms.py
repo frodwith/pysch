@@ -42,7 +42,7 @@ cadr_chain = re.compile(r'^c([a|d]*)r$')
 
 # a real linked list cell: iterable, indexable, and printable
 class Cons:
-  def __init__(self, car, cdr):
+  def __init__(self, car=None, cdr=None):
     self.car = car
     self.cdr = cdr
 
@@ -83,6 +83,16 @@ class Cons:
       parts.insert(-1, '.')
 
     return '(' + ' '.join(parts) + ')'
+
+def scm_list(*args):
+  head = Cons()
+  current = head
+  for i in args:
+    current.cdr = Cons(i)
+    current = current.cdr
+
+  current.cdr = nil
+  return head.cdr
 
 class Environment(dict):
   def __init__(self, parent=None, initial=None):
@@ -127,7 +137,11 @@ class Lambda:
 
   def __call__(self, *args):
     env = Environment(self.env)
-    env.update({b[0].string: b[1] for b in zip(self.args, args)})
+    arg_spec = self.args
+    if type(arg_spec) == Symbol:
+      env[arg_spec.string] = scm_list(*args)
+    else:
+      env.update({b[0].string: b[1] for b in zip(arg_spec, args)})
     return [pysch.eval(f, env) for f in self.forms][-1]
 
 class Syntax:
